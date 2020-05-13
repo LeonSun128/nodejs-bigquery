@@ -26,7 +26,6 @@ import * as assert from 'assert';
 import {describe, it, afterEach, beforeEach, before, after} from 'mocha';
 import Big from 'big.js';
 import {EventEmitter} from 'events';
-import * as extend from 'extend';
 import * as pReflect from 'p-reflect';
 import * as proxyquire from 'proxyquire';
 import * as sinon from 'sinon';
@@ -57,7 +56,7 @@ interface CalledWithTable extends ServiceObject {
 let promisified = false;
 let makeWritableStreamOverride: Function | null;
 let isCustomTypeOverride: Function | null;
-const fakeUtil = extend({}, util, {
+const fakeUtil = Object.assign({}, util, {
   isCustomType: (...args: Array<{}>) => {
     return (isCustomTypeOverride || util.isCustomType)(...args);
   },
@@ -66,7 +65,7 @@ const fakeUtil = extend({}, util, {
   },
   noop: () => {},
 });
-const fakePfy = extend({}, pfy, {
+const fakePfy = Object.assign({}, pfy, {
   promisifyAll: (c: Function) => {
     if (c.name === 'Table') {
       promisified = true;
@@ -94,8 +93,7 @@ const fakePaginator = {
   },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let fakeUuid: any = extend(true, {}, uuid);
+let fakeUuid = Object.assign({}, uuid);
 
 class FakeServiceObject extends ServiceObject {
   calledWith_: IArguments;
@@ -125,7 +123,7 @@ describe('BigQuery/Table', () => {
       '@google-cloud/promisify': fakePfy,
     }).Table;
 
-    const tableCached = extend(true, {}, Table);
+    const tableCached = Object.assign({}, Table);
 
     // Override all util methods, allowing them to be mocked. Overrides are
     // removed before each test.
@@ -143,7 +141,7 @@ describe('BigQuery/Table', () => {
   });
 
   beforeEach(() => {
-    fakeUuid = extend(fakeUuid, uuid);
+    fakeUuid = Object.assign(fakeUuid, uuid);
     isCustomTypeOverride = null;
     makeWritableStreamOverride = null;
     tableOverrides = {};
@@ -214,7 +212,7 @@ describe('BigQuery/Table', () => {
     });
 
     it('should inherit from ServiceObject', done => {
-      const datasetInstance = extend({}, DATASET, {
+      const datasetInstance = Object.assign({}, DATASET, {
         createTable: {
           bind: (context: {}) => {
             assert.strictEqual(context, datasetInstance);
@@ -277,7 +275,7 @@ describe('BigQuery/Table', () => {
           },
         };
 
-        const expectedHeaders = extend({}, fakeReqOpts.headers, {
+        const expectedHeaders = Object.assign({}, fakeReqOpts.headers, {
           'If-Match': FAKE_ETAG,
         });
 
@@ -1513,17 +1511,13 @@ describe('BigQuery/Table', () => {
     });
 
     describe('writable stream', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let fakeJob: any;
+      let fakeJob: EventEmitter;
       let fakeJobId: string;
 
       beforeEach(() => {
         fakeJob = new EventEmitter();
         fakeJobId = uuid.v4();
-
-        fakeUuid.v4 = () => {
-          return fakeJobId;
-        };
+        sandbox.stub(fakeUuid, 'v4').returns(fakeJobId);
       });
 
       it('should make a writable stream when written to', done => {
@@ -2045,9 +2039,7 @@ describe('BigQuery/Table', () => {
     beforeEach(() => {
       insertSpy = sinon.spy(table, '_insert');
       requestStub = sinon.stub(table, 'request').resolves([{}]);
-      fakeUuid.v4 = () => {
-        return fakeInsertId;
-      };
+      sandbox.stub(fakeUuid, 'v4').returns(fakeInsertId);
     });
 
     afterEach(() => {

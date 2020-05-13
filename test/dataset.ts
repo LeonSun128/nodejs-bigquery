@@ -22,7 +22,6 @@ import * as pfy from '@google-cloud/promisify';
 import arrify = require('arrify');
 import * as assert from 'assert';
 import {describe, it, before, beforeEach} from 'mocha';
-import * as extend from 'extend';
 import * as proxyquire from 'proxyquire';
 
 import * as _root from '../src';
@@ -39,7 +38,7 @@ interface CalledWithDataset extends ServiceObject {
 }
 
 let promisified = false;
-const fakePfy = extend({}, pfy, {
+const fakePfy = Object.assign({}, pfy, {
   promisifyAll: (c: Function, options: pfy.PromisifyAllOptions) => {
     if (c.name !== 'Dataset') {
       return;
@@ -157,7 +156,7 @@ describe('BigQuery/Dataset', () => {
       let config: any;
 
       beforeEach(() => {
-        bq = extend(true, {}, BIGQUERY);
+        bq = Object.assign({}, BIGQUERY);
         ds = new Dataset(bq, DATASET_ID);
         config = ds.calledWith_[0];
       });
@@ -227,7 +226,7 @@ describe('BigQuery/Dataset', () => {
           },
         };
 
-        const expectedHeaders = extend({}, fakeReqOpts.headers, {
+        const expectedHeaders = Object.assign({}, fakeReqOpts.headers, {
           'If-Match': FAKE_ETAG,
         });
 
@@ -260,8 +259,7 @@ describe('BigQuery/Dataset', () => {
         a: {b: 'c'},
       };
 
-      const expectedOptions = extend(
-        true,
+      const expectedOptions = Object.assign(
         {
           location: LOCATION,
         },
@@ -521,7 +519,7 @@ describe('BigQuery/Dataset', () => {
     });
 
     it('should pass the location to the Table', done => {
-      const response = extend({location: LOCATION}, API_RESPONSE);
+      const response = Object.assign({location: LOCATION}, API_RESPONSE);
 
       ds.request = (reqOpts: DecorateRequestOptions, callback: Function) => {
         callback(null, response);
@@ -555,7 +553,7 @@ describe('BigQuery/Dataset', () => {
     });
 
     it('should assign metadata to the Table object', done => {
-      const apiResponse = extend(
+      const apiResponse = Object.assign(
         {
           a: 'b',
           c: 'd',
